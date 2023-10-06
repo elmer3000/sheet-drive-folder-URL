@@ -1,0 +1,75 @@
+// Function to be triggered on sheet change
+function onSheetChange(e) {
+  // Check if running manually; if so, exit function
+  if (typeof e === 'undefined') {
+    Logger.log('Event object is undefined; likely running manually.');
+    return;
+  }
+
+  // Log the changeType
+  Logger.log('Change Type: ' + e.changeType);
+
+  // Check if the change is an EDIT event, which could be a new form submission
+  if (e.changeType === 'EDIT') {
+    Logger.log('Edit detected');
+
+    // Wait for 1.5 minutes (90,000 milliseconds)
+    Utilities.sleep(90000);
+    Logger.log('Waited for 5 minutes');
+
+    // Get the active spreadsheet
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // Get the sheet where form responses are collected
+    var sheet = ss.getSheetByName('Form Responses'); // Replace with your actual sheet name if different
+
+    // Get the last row of data
+    var lastRow = sheet.getLastRow();
+
+    // Assuming that a new form submission would populate the last row
+    Logger.log('Last row edited, assuming new entry');
+    
+    // Read data from columns B, D, and E in the last row
+    var rowData = sheet.getRange(lastRow, 1, 1, 5).getValues();
+    var bValue = rowData[0][1]; // Column B
+    var dValue = rowData[0][3]; // Column D
+    var eValue = rowData[0][4]; // Column E
+    Logger.log('Row data: ', rowData);
+    
+    // Create the predictable folder name
+    var folderName = bValue + ' ' + dValue + ' ' + eValue;
+    Logger.log('Searching for folder: ' + folderName);
+    
+    // Search for the folder in Google Drive
+    var folders = DriveApp.getFoldersByName(folderName);
+    
+    // If folder exists, get the first one (assuming unique folder names)
+    if (folders.hasNext()) {
+      var folder = folders.next();
+      Logger.log('Folder found');
+      
+      // Get the folder's shareable link
+      var folderUrl = folder.getUrl();
+      Logger.log('Folder URL: ' + folderUrl);
+      
+      // Write the folder link back to the Google Sheet in column AI of the same row
+      sheet.getRange(lastRow, 35).setValue(folderUrl); // Column AI
+      Logger.log('Folder URL written to sheet');
+    } else {
+      Logger.log('Folder not found');
+    }
+  }
+}
+
+
+// Function to set up a trigger for sheet changes
+function setUpChangeTrigger() {
+  // Get the active spreadsheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Create a trigger for 'onSheetChange'
+  ScriptApp.newTrigger('onSheetChange')
+    .forSpreadsheet(ss)
+    .onChange()
+    .create();
+}
