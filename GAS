@@ -15,7 +15,7 @@ function onSheetChange(e) {
 
     // Wait for 1.5 minutes (90,000 milliseconds)
     Utilities.sleep(90000);
-    Logger.log('Waited for 5 minutes');
+    Logger.log('Waited for 1.5 minutes');
 
     // Get the active spreadsheet
     var ss = SpreadsheetApp.getActiveSpreadsheet();
